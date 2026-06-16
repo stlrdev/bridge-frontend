@@ -24,7 +24,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { X, Plus, ChevronDown } from "lucide-react";
 import { companySchema, type CompanyFormData } from "@/companies/schemas";
-import { merchants as availableMerchants } from "@/data/admin-merchants";
+import { useCreateCompany } from "@/features/companies/hooks";
+import { useMerchants } from "@/features/merchants/hooks";
+import { toast } from "@/lib/toast";
 
 export default function AddNewCompany() {
   const [merchants, setMerchants] = useState<string[]>([
@@ -32,6 +34,10 @@ export default function AddNewCompany() {
     "TechMart Solutions",
     "Delta Airlines",
   ]);
+
+  const createCompany = useCreateCompany();
+  const { data: merchantsData } = useMerchants();
+  const availableMerchants = merchantsData?.data ?? [];
 
   const form = useForm<CompanyFormData>({
     resolver: zodResolver(companySchema),
@@ -48,11 +54,19 @@ export default function AddNewCompany() {
   });
 
   const onSubmit = (data: CompanyFormData) => {
-    console.log("Form submitted:", {
-      ...data,
-      customMerchantAccess: merchants,
-    });
-    // Handle form submission here
+    createCompany.mutate(
+      { name: data.companyName },
+      {
+        onSuccess: () => {
+          toast.success("Company created successfully");
+          form.reset();
+        },
+        onError: (err: unknown) => {
+          const msg = err instanceof Error ? err.message : "Failed to create company";
+          toast.error(msg);
+        },
+      },
+    );
   };
 
   const addMerchant = (merchant: string) => {
@@ -279,7 +293,9 @@ export default function AddNewCompany() {
             <Button type="button" variant="outline">
               Cancel
             </Button>
-            <Button type="submit">Add Company</Button>
+            <Button type="submit" disabled={createCompany.isPending}>
+              {createCompany.isPending ? "Creating..." : "Add Company"}
+            </Button>
           </div>
         </form>
       </Form>

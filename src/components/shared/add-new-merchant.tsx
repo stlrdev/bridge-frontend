@@ -24,6 +24,9 @@ import {
 } from "@/features/merchants/schemas/merchant-schema";
 import { Checkbox } from "../ui/checkbox";
 import { Icons } from "./icons";
+import { useCreateMerchant } from "@/features/merchants/hooks";
+import type { MerchantCategory } from "@/features/merchants/types";
+import { toast } from "@/lib/toast";
 
 const categories = [
   "Retail",
@@ -38,6 +41,7 @@ const categories = [
 
 export default function AddNewMerchant() {
   const [uploadedFiles, setUploadedFiles] = useState<UploadFile[]>([]);
+  const createMerchant = useCreateMerchant();
 
   const form = useForm<MerchantFormData>({
     resolver: zodResolver(merchantSchema),
@@ -54,11 +58,31 @@ export default function AddNewMerchant() {
   });
 
   const onSubmit = (data: MerchantFormData) => {
-    console.log("Form submitted:", {
-      ...data,
-      logo: uploadedFiles.length > 0 ? uploadedFiles[0].file : null,
-    });
-    // Handle form submission here
+    const nameParts = data.fullName.trim().split(/\s+/);
+    const firstName = nameParts[0];
+    const lastName = nameParts.slice(1).join(" ") || firstName;
+
+    createMerchant.mutate(
+      {
+        name: data.merchantName,
+        contactEmail: data.emailAddress,
+        category: data.category.toLowerCase() as MerchantCategory,
+        ownerEmail: data.emailAddress,
+        ownerFirstName: firstName,
+        ownerLastName: lastName,
+        ownerPassword: `Temp${Date.now()}!`,
+      },
+      {
+        onSuccess: () => {
+          toast.success("Merchant created successfully");
+          form.reset();
+        },
+        onError: (err: unknown) => {
+          const msg = err instanceof Error ? err.message : "Failed to create merchant";
+          toast.error(msg);
+        },
+      },
+    );
   };
 
   return (
@@ -289,7 +313,9 @@ export default function AddNewMerchant() {
             <Button type="button" variant="outline">
               Cancel
             </Button>
-            <Button type="submit">Submit</Button>
+            <Button type="submit" disabled={createMerchant.isPending}>
+              {createMerchant.isPending ? "Submitting..." : "Submit"}
+            </Button>
           </div>
         </form>
       </Form>

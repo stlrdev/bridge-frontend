@@ -22,13 +22,18 @@ import {
 } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { merchants } from "@/data/admin-merchants";
 import { useForm } from "react-hook-form";
 import { CreateOfferFormValues } from "@/features/offers/schema";
 import { DateRangePicker } from "@/components/shared/date-range-picker";
 import { type DateRange } from "react-day-picker";
+import { useCreateCampaign } from "@/features/offers/hooks";
+import { useMerchants } from "@/features/merchants/hooks";
+import { toast } from "@/lib/toast";
 
 export default function AddNewOffer() {
+  const { data: merchantsData } = useMerchants();
+  const merchants = merchantsData?.data ?? [];
+
   const form = useForm<CreateOfferFormValues>({
     defaultValues: {
       title: "",
@@ -42,10 +47,12 @@ export default function AddNewOffer() {
     },
   });
 
+  const selectedMerchantId = form.watch("merchantId");
+  const createCampaign = useCreateCampaign(selectedMerchantId);
+
   // Handle date range changes and update string fields
   const handleDateRangeChange = (range: DateRange | undefined) => {
     if (range?.from && range?.to) {
-      // Convert dates to ISO strings for form
       const fromString = range.from.toISOString().split("T")[0];
       const toString = range.to.toISOString().split("T")[0];
 
@@ -55,17 +62,37 @@ export default function AddNewOffer() {
     } else {
       form.setValue("validFrom", "");
       form.setValue("validUntil", "");
-      // Don't set undefined for required field, let validation handle it
       form.setValue("validityRange", { from: undefined, to: undefined });
     }
   };
 
   const handleSubmit = form.handleSubmit((data) => {
-    console.log(data);
+    if (!data.merchantId) {
+      toast.error("Please select a merchant");
+      return;
+    }
+    createCampaign.mutate(
+      {
+        name: data.title,
+        description: data.description,
+        startDate: data.validFrom,
+        endDate: data.validUntil,
+      },
+      {
+        onSuccess: () => {
+          toast.success("Campaign created successfully");
+          form.reset();
+        },
+        onError: (err: unknown) => {
+          const msg = err instanceof Error ? err.message : "Failed to create campaign";
+          toast.error(msg);
+        },
+      },
+    );
   });
   return (
     <Form {...form}>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className="relative">
         <div className="grid grid-cols-3 gap-5 mt-8">
           <div className="col-span-2 flex flex-col gap-5">
             <Card>
@@ -315,6 +342,11 @@ export default function AddNewOffer() {
               </CardContent>
             </Card>
           </div>
+        </div>
+        <div className="flex justify-end mt-6">
+          <Button type="submit" disabled={createCampaign.isPending}>
+            {createCampaign.isPending ? "Creating..." : "Create Campaign"}
+          </Button>
         </div>
       </form>
     </Form>
