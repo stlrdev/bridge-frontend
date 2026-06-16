@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { Icons } from "@/components/shared/icons";
 import {
   Card,
@@ -32,7 +33,9 @@ export default function LoginPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <LoginForm />
+              <Suspense>
+                <LoginForm />
+              </Suspense>
             </CardContent>
             <CardFooter className="flex flex-col items-center gap-4">
               <div className="flex items-center justify-center gap-2 my-4">

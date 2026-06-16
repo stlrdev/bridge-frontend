@@ -24,7 +24,7 @@ export default function SelectDemo() {
       value: "vouchers",
       label: "Vouchers",
       description: "Create and manage vouchers",
-      icon: <Icons.TicketSale />,
+      icon: <Icons.Coupon />,
     },
     {
       value: "merchants",

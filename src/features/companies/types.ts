@@ -1,27 +1,45 @@
-export type CompanyTier = "STARTER" | "GROWTH" | "ENTERPRISE";
+import { PaginationParams } from "@/core/types";
 
-export interface CompanyBranding {
-  companyId: string;
-  companyName: string;
-  logoUrl?: string;
-  primaryColor: string;
-  secondaryColor?: string;
-  accentColor?: string;
-}
+export type ClientOrganizationStatus = "active" | "suspended" | "inactive";
 
-export interface Company {
+export interface ClientOrganization {
   id: string;
   name: string;
-  logoUrl?: string;
-  employeeCount: number;
-  activeSubscription: boolean;
-  tier: CompanyTier;
-  branding?: CompanyBranding;
+  slug: string;
+  description: string | null;
+  contactEmail: string | null;
+  contactPhone: string | null;
+  status: ClientOrganizationStatus;
+  enabledMerchants: string[];
+  enabledCampaigns: string[];
+  enabledVouchers: string[];
+  metadata: Record<string, unknown>;
   createdAt: string;
+  updatedAt: string;
 }
 
-export interface CompanyListParams {
-  page?: number;
-  pageSize?: number;
+export interface ClientEmployee {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  fullName: string;
+  phoneNumber: string | null;
+  createdAt: string;
+  lastLoginAt: string | null;
+}
+
+export interface CreateClientOrganizationPayload {
+  name: string;
+  description?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+}
+
+export interface CompanyListParams extends PaginationParams {
+  status?: ClientOrganizationStatus;
   search?: string;
 }
+
+// UI alias kept for compatibility with existing page components
+export type Company = ClientOrganization;

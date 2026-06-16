@@ -7,10 +7,13 @@ export type UserRole =
 export interface BridgeUser {
   id: string;
   email: string;
+  firstName: string;
+  lastName: string;
   name: string;
   role: UserRole;
   companyId?: string;
   merchantId?: string;
+  clientOrganizationId?: string;
   avatarUrl?: string;
 }
 

@@ -1,6 +1,13 @@
 "use client";
 
-import { CompanyBranding } from "@/features/companies/types";
+export interface CompanyBranding {
+  companyId: string;
+  companyName: string;
+  logoUrl?: string;
+  primaryColor: string;
+  secondaryColor?: string;
+  accentColor?: string;
+}
 import {
   createContext,
   useContext,

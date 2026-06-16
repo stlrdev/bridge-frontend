@@ -19,6 +19,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
+import { signIn } from "next-auth/react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
+import { toast } from "@/lib/toast";
 
 const defaultValues: LoginValidationSchema = {
   email: "",
@@ -26,13 +30,36 @@ const defaultValues: LoginValidationSchema = {
 };
 
 export default function LoginForm() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [isLoading, setIsLoading] = useState(false);
+
   const form = useForm<LoginValidationSchema>({
     defaultValues,
     resolver: zodResolver(loginValidationSchema),
   });
 
-  const handleFormSubmit = (data: LoginValidationSchema) => {
-    console.log(data);
+  const handleFormSubmit = async (data: LoginValidationSchema) => {
+    setIsLoading(true);
+    try {
+      const callbackUrl = searchParams.get("callbackUrl") ?? "/";
+      const result = await signIn("credentials", {
+        email: data.email,
+        password: data.password,
+        redirect: false,
+        callbackUrl,
+      });
+
+      if (result?.error) {
+        toast.error("Invalid email or password. Please try again.");
+        return;
+      }
+
+      router.push(callbackUrl);
+      router.refresh();
+    } finally {
+      setIsLoading(false);
+    }
   };
   return (
     <Form {...form}>
@@ -101,8 +128,8 @@ export default function LoginForm() {
                 </Link>
               </div>
             </div>
-            <Button type="submit" className="py-6 ">
-              LOGIN
+            <Button type="submit" className="py-6" disabled={isLoading}>
+              {isLoading ? "SIGNING IN..." : "LOGIN"}
             </Button>
           </FieldGroup>
         </FieldSet>

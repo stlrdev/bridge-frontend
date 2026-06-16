@@ -4,33 +4,37 @@ import axios, {
   AxiosRequestConfig,
   InternalAxiosRequestConfig,
 } from "axios";
-import { ApiError } from "../types";
+import { ApiError, PaginatedResponse } from "../types";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 let tokenAccessor: (() => string | null) | null = null;
 
-/**
- * Sets the token accessor function for authentication.
- * This function will be called to retrieve the auth token for each API request.
- *
- * @param fn - Function that returns the auth token or null if not authenticated
- */
 export function setTokenAccessor(fn: () => string | null) {
   tokenAccessor = fn;
 }
 
-/**
- * Creates and configures an Axios API client with authentication and error handling.
- *
- * Features:
- * - Automatic JWT token injection via Authorization header
- * - Global error handling with 401 redirect to login
- * - Standardized API error format
- * - JSON content type headers
- *
- * @returns Configured Axios instance for API requests
- */
+interface BackendEnvelope<T> {
+  success: boolean;
+  message: string;
+  data: T;
+  meta?: {
+    total: number;
+    page: number;
+    pageSize: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrevious: boolean;
+  };
+  errors?: string[];
+}
+
+function isPaginatedResult<T>(
+  envelope: BackendEnvelope<T[]>,
+): envelope is BackendEnvelope<T[]> & { meta: NonNullable<BackendEnvelope<T[]>["meta"]> } {
+  return envelope.meta !== undefined && Array.isArray(envelope.data);
+}
+
 function createApiClient(): AxiosInstance {
   const client = axios.create({
     baseURL: BASE_URL,
@@ -52,13 +56,29 @@ function createApiClient(): AxiosInstance {
   );
 
   client.interceptors.response.use(
-    (response) => response,
+    (response) => {
+      const envelope = response.data as BackendEnvelope<unknown>;
+
+      if (envelope && typeof envelope === "object" && "success" in envelope) {
+        if (isPaginatedResult(envelope as BackendEnvelope<unknown[]>)) {
+          const paginatedEnvelope = envelope as BackendEnvelope<unknown[]>;
+          const paginated: PaginatedResponse<unknown> = {
+            data: paginatedEnvelope.data,
+            total: paginatedEnvelope.meta!.total,
+            page: paginatedEnvelope.meta!.page,
+            pageSize: paginatedEnvelope.meta!.pageSize,
+            totalPages: paginatedEnvelope.meta!.totalPages,
+          };
+          response.data = paginated;
+        } else {
+          response.data = envelope.data;
+        }
+      }
+
+      return response;
+    },
     (
-      error: AxiosError<{
-        message?: string;
-        code?: string;
-        details?: Record<string, string[]>;
-      }>,
+      error: AxiosError<BackendEnvelope<null>>,
     ) => {
       const status = error.response?.status;
       if (status === 401 && typeof window !== "undefined") {
@@ -66,12 +86,14 @@ function createApiClient(): AxiosInstance {
         return Promise.reject(error);
       }
 
+      const responseData = error.response?.data;
       const apiError: ApiError = {
         statusCode: status ?? 0,
-        message:
-          error.response?.data?.message ?? "An unexpected error occurred.",
-        code: error.response?.data?.code ?? "",
-        details: error.response?.data?.details,
+        message: responseData?.message ?? "An unexpected error occurred.",
+        code: "",
+        details: responseData?.errors
+          ? { errors: responseData.errors }
+          : undefined,
       };
 
       return Promise.reject(apiError);
@@ -83,17 +105,6 @@ function createApiClient(): AxiosInstance {
 
 export const apiClient = createApiClient();
 
-/**
- * Makes a GET request to the specified URL.
- *
- * @template T - Expected response data type
- * @param url - The endpoint URL to request
- * @param config - Optional Axios request configuration
- * @returns Promise resolving to the response data
- *
- * @example
- * const user = await get<User>('/api/users/123');
- */
 export async function get<T>(
   url: string,
   config?: AxiosRequestConfig,
@@ -102,19 +113,6 @@ export async function get<T>(
   return res.data;
 }
 
-/**
- * Makes a POST request to the specified URL with optional payload.
- *
- * @template TRes - Expected response data type
- * @template TPayload - Request payload type (defaults to unknown)
- * @param url - The endpoint URL to request
- * @param payload - Optional request body data
- * @param config - Optional Axios request configuration
- * @returns Promise resolving to the response data
- *
- * @example
- * const newUser = await post<User, CreateUserDto>('/api/users', userData);
- */
 export async function post<TRes, TPayload = unknown>(
   url: string,
   payload?: TPayload,
@@ -124,20 +122,6 @@ export async function post<TRes, TPayload = unknown>(
   return res.data;
 }
 
-/**
- * Makes a PUT request to the specified URL with optional payload.
- * Typically used for full resource updates.
- *
- * @template TRes - Expected response data type
- * @template TPayload - Request payload type (defaults to unknown)
- * @param url - The endpoint URL to request
- * @param payload - Optional request body data
- * @param config - Optional Axios request configuration
- * @returns Promise resolving to the response data
- *
- * @example
- * const updatedUser = await put<User, UpdateUserDto>('/api/users/123', userData);
- */
 export async function put<TRes, TPayload = unknown>(
   url: string,
   payload?: TPayload,
@@ -147,20 +131,6 @@ export async function put<TRes, TPayload = unknown>(
   return res.data;
 }
 
-/**
- * Makes a PATCH request to the specified URL with optional payload.
- * Typically used for partial resource updates.
- *
- * @template TRes - Expected response data type
- * @template TPayload - Request payload type (defaults to unknown)
- * @param url - The endpoint URL to request
- * @param payload - Optional request body data
- * @param config - Optional Axios request configuration
- * @returns Promise resolving to the response data
- *
- * @example
- * const updatedUser = await patch<User, PartialUserDto>('/api/users/123', partialData);
- */
 export async function patch<TRes, TPayload = unknown>(
   url: string,
   payload?: TPayload,
@@ -170,17 +140,6 @@ export async function patch<TRes, TPayload = unknown>(
   return res.data;
 }
 
-/**
- * Makes a DELETE request to the specified URL.
- *
- * @template T - Expected response data type (often void or a confirmation message)
- * @param url - The endpoint URL to request
- * @param config - Optional Axios request configuration
- * @returns Promise resolving to the response data
- *
- * @example
- * await delete<void>('/api/users/123');
- */
 export async function del<T>(
   url: string,
   config?: AxiosRequestConfig,
