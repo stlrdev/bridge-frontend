@@ -5,17 +5,15 @@ import { Button } from "@/components/shared/button";
 import {
   Card,
   CardContent,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { toast } from "@/lib/toast";
-import { Icons } from "@/components/shared/icons";
-import { merchants } from "@/data/merchants";
-import Image from "next/image";
-import { Separator } from "@/components/ui/separator";
-import React from "react";
 import { formatCurrency } from "@/lib/utils";
+import { useMerchant } from "@/features/merchants/hooks";
+import { useOrgOffers } from "@/features/offers/hooks";
+import { useClaimVoucher } from "@/features/vouchers/hooks";
+import React from "react";
 
 export default function OfferDetailsPage({
   params,
@@ -24,78 +22,78 @@ export default function OfferDetailsPage({
 }) {
   const { offerId } = React.use(params);
 
-  const offer = merchants.find((merchant) => merchant.id === offerId);
+  const { data: merchant, isLoading: merchantLoading } = useMerchant(offerId);
+  const { data: offersData, isLoading: offersLoading } = useOrgOffers();
+  const claimVoucher = useClaimVoucher();
+
+  const merchantOffers = (offersData?.data ?? []).filter(
+    (o) => o.merchantId === offerId,
+  );
+
   return (
     <Container>
-      <Card className="max-w-2xl mx-auto my-20 pt-0 overflow-hidden">
-        <CardHeader className="bg-gray-200 p-5">
-          <CardTitle>{offer?.name}</CardTitle>
+      <Card className="max-w-2xl mx-auto my-20 overflow-hidden">
+        <CardHeader className="bg-muted p-5">
+          <CardTitle>
+            {merchantLoading ? "Loading..." : (merchant?.name ?? "Merchant Offers")}
+          </CardTitle>
         </CardHeader>
-        <CardContent>
-          <h4 className="text-lg text-primary font-bold mb-2 text-center">
-            SHOW TO CASHIER
-          </h4>
-          <p className="text-center text-sm text-muted">
-            Scan the QR code or enter the code manually.
-          </p>
-          <div className="flex items-center justify-center my-10">
-            <Image
-              src="/images/qr.png"
-              alt="QR Code"
-              width={200}
-              height={200}
-            />
-          </div>
-
-          <div className="bg-white flex justify-between items-end p-4 rounded-lg">
-            <div className="flex flex-col gap-2">
-              <p className="text-xs text-muted-foreground">VOUCHER CODE</p>
-              <code className="font-semibold text-primary">CODE</code>
+        <CardContent className="p-5">
+          {offersLoading ? (
+            <div className="space-y-3">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="h-24 rounded-xl bg-muted animate-pulse" />
+              ))}
             </div>
-            <div>
-              <Button
-                size="icon-sm"
-                onClick={() => {
-                  navigator.clipboard.writeText("CODE");
-                  toast.success("Voucher code copied to clipboard!");
-                }}
-              >
-                <Icons.Copy color="#ffffff" />
-              </Button>
+          ) : merchantOffers.length === 0 ? (
+            <p className="text-center text-muted-foreground py-10">
+              No offers available from this merchant right now.
+            </p>
+          ) : (
+            <div className="space-y-4">
+              {merchantOffers.map((offer) => {
+                const valueLabel =
+                  offer.discountType === "PERCENTAGE"
+                    ? `${offer.discountValue}% OFF`
+                    : formatCurrency(offer.discountValue);
+                return (
+                  <div
+                    key={offer.id}
+                    className="border rounded-lg p-4 flex justify-between items-start gap-4"
+                  >
+                    <div className="flex-1">
+                      <h4 className="font-semibold">{offer.title}</h4>
+                      <p className="text-sm text-muted-foreground">
+                        {offer.description}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Expires{" "}
+                        {new Date(offer.validUntil).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div className="flex flex-col items-end gap-2 shrink-0">
+                      <span className="text-primary font-bold">{valueLabel}</span>
+                      <Button
+                        size="sm"
+                        disabled={claimVoucher.isPending || !offer.isActive}
+                        onClick={() =>
+                          claimVoucher.mutate(offer.id, {
+                            onSuccess: () =>
+                              toast.success("Voucher claimed! Check your wallet."),
+                            onError: () =>
+                              toast.error("Failed to claim voucher"),
+                          })
+                        }
+                      >
+                        {offer.isActive ? "Claim" : "Unavailable"}
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-          </div>
+          )}
         </CardContent>
-        <CardFooter>
-          <div className="w-full">
-            <div className="flex justify-between items-start">
-              <div className="flex flex-col">
-                <span className="text-sm text-muted-foreground">
-                  EXPIRES ON
-                </span>
-                <span className="text-md font-medium">2025-10-25</span>
-              </div>
-              <div className="flex flex-col items-end">
-                <span className="text-sm text-muted-foreground">VALUE</span>
-                <span className="text-md font-medium">
-                  {formatCurrency(10)} Credit
-                </span>
-              </div>
-            </div>
-            <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4 my-10">
-              <span className="text-xs font-semibold text-muted-foreground text-right">
-                PRIVACY POLICY
-              </span>
-              <Separator
-                orientation="vertical"
-                color="red"
-                className="font-bold"
-              />
-              <span className="text-xs font-semibold text-muted-foreground text-left">
-                TERMS OF SERVICE
-              </span>
-            </div>
-          </div>
-        </CardFooter>
       </Card>
     </Container>
   );
