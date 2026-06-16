@@ -1,0 +1,178 @@
+export type Tier = "bronze" | "silver" | "gold" | "platinum";
+
+export type Merchant = {
+  id: string;
+  name: string;
+  category: "Food & Bev" | "Retail" | "Lifestyle" | "Tech";
+  activeOffers: number;
+  visibleTiers: Tier[];
+  monthlyRedemptions: number;
+  status: "active" | "inactive";
+};
+
+export const merchants: Merchant[] = [
+  {
+    id: "MER-88219",
+    name: "Brew & Beans Co.",
+    category: "Food & Bev",
+    activeOffers: 12,
+    visibleTiers: ["gold", "silver", "bronze"],
+    monthlyRedemptions: 4520,
+    status: "active",
+  },
+  {
+    id: "MER-12903",
+    name: "Urban Threads",
+    category: "Retail",
+    activeOffers: 28,
+    visibleTiers: ["silver", "bronze"],
+    monthlyRedemptions: 12104,
+    status: "active",
+  },
+  {
+    id: "MER-44210",
+    name: "Zenith Fitness",
+    category: "Lifestyle",
+    activeOffers: 5,
+    visibleTiers: ["silver"],
+    monthlyRedemptions: 1890,
+    status: "inactive",
+  },
+  {
+    id: "MER-55201",
+    name: "Elector Hub",
+    category: "Tech",
+    activeOffers: 42,
+    visibleTiers: ["gold", "silver", "bronze"],
+    monthlyRedemptions: 24561,
+    status: "active",
+  },
+  {
+    id: "MER-99003",
+    name: "The Spice Route",
+    category: "Food & Bev",
+    activeOffers: 15,
+    visibleTiers: ["silver", "bronze"],
+    monthlyRedemptions: 7344,
+    status: "active",
+  },
+
+  // Additional mock data
+  {
+    id: "MER-11021",
+    name: "Green Bowl",
+    category: "Food & Bev",
+    activeOffers: 9,
+    visibleTiers: ["gold", "silver"],
+    monthlyRedemptions: 5320,
+    status: "active",
+  },
+  {
+    id: "MER-22045",
+    name: "FitZone Gym",
+    category: "Lifestyle",
+    activeOffers: 6,
+    visibleTiers: ["silver"],
+    monthlyRedemptions: 2100,
+    status: "active",
+  },
+  {
+    id: "MER-33078",
+    name: "Techify Store",
+    category: "Tech",
+    activeOffers: 31,
+    visibleTiers: ["gold", "bronze"],
+    monthlyRedemptions: 18450,
+    status: "active",
+  },
+  {
+    id: "MER-44112",
+    name: "Style Avenue",
+    category: "Retail",
+    activeOffers: 22,
+    visibleTiers: ["silver", "bronze"],
+    monthlyRedemptions: 10430,
+    status: "active",
+  },
+  {
+    id: "MER-55198",
+    name: "Coffee Corner",
+    category: "Food & Bev",
+    activeOffers: 14,
+    visibleTiers: ["gold", "silver", "bronze"],
+    monthlyRedemptions: 8900,
+    status: "active",
+  },
+  {
+    id: "MER-66234",
+    name: "Gadget World",
+    category: "Tech",
+    activeOffers: 38,
+    visibleTiers: ["gold", "silver"],
+    monthlyRedemptions: 22010,
+    status: "inactive",
+  },
+  {
+    id: "MER-77356",
+    name: "Urban Kicks",
+    category: "Retail",
+    activeOffers: 19,
+    visibleTiers: ["bronze"],
+    monthlyRedemptions: 7650,
+    status: "active",
+  },
+  {
+    id: "MER-88421",
+    name: "Healthy Living Hub",
+    category: "Lifestyle",
+    activeOffers: 11,
+    visibleTiers: ["silver", "bronze"],
+    monthlyRedemptions: 4980,
+    status: "active",
+  },
+  {
+    id: "MER-99567",
+    name: "Spice & Grill",
+    category: "Food & Bev",
+    activeOffers: 17,
+    visibleTiers: ["gold", "bronze"],
+    monthlyRedemptions: 9120,
+    status: "active",
+  },
+  {
+    id: "MER-10678",
+    name: "NextGen Electronics",
+    category: "Tech",
+    activeOffers: 45,
+    visibleTiers: ["gold", "silver", "bronze"],
+    monthlyRedemptions: 30210,
+    status: "active",
+  },
+  {
+    id: "MER-11789",
+    name: "Fashion Hub",
+    category: "Retail",
+    activeOffers: 25,
+    visibleTiers: ["silver"],
+    monthlyRedemptions: 13450,
+    status: "inactive",
+  },
+  {
+    id: "MER-12890",
+    name: "Wellness Space",
+    category: "Lifestyle",
+    activeOffers: 8,
+    visibleTiers: ["silver", "bronze"],
+    monthlyRedemptions: 3560,
+    status: "active",
+  },
+  {
+    id: "MER-13991",
+    name: "Daily Brew",
+    category: "Food & Bev",
+    activeOffers: 13,
+    visibleTiers: ["gold", "silver"],
+    monthlyRedemptions: 6780,
+    status: "active",
+  },
+];
