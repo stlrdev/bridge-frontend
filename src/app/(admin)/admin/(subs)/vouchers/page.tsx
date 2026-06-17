@@ -47,9 +47,10 @@ const columns: Column<Voucher>[] = [
 
 export default function VouchersPage() {
   const [currentPage, setCurrentPage] = React.useState(1);
+  const [search, setSearch] = React.useState("");
   const pageSize = 10;
 
-  const { data, isLoading } = useAdminVouchers({ page: currentPage, pageSize });
+  const { data, isLoading } = useAdminVouchers({ page: currentPage, pageSize, search: search || undefined });
   const disableVoucher = useAdminDisableVoucher();
 
   const vouchers = data?.data ?? [];
@@ -120,7 +121,7 @@ export default function VouchersPage() {
         actions={{
           search: {
             placeholder: "Search vouchers...",
-            onSearch: (q) => console.log("Search:", q),
+            onSearch: (q) => { setSearch(q); setCurrentPage(1); },
           },
         }}
       />

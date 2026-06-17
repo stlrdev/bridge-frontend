@@ -70,9 +70,10 @@ const offerRowActions = (voucher: Voucher) => (
 
 export default function OffersPage() {
   const [currentPage, setCurrentPage] = React.useState(1);
+  const [search, setSearch] = React.useState("");
   const pageSize = 10;
 
-  const { data, isLoading } = useAdminVouchers({ page: currentPage, pageSize });
+  const { data, isLoading } = useAdminVouchers({ page: currentPage, pageSize, search: search || undefined });
   const vouchers = data?.data ?? [];
   const totalPages = data?.totalPages ?? 1;
   const total = data?.total ?? 0;
@@ -150,7 +151,7 @@ export default function OffersPage() {
         actions={{
           search: {
             placeholder: "Search vouchers...",
-            onSearch: (query) => console.log("Search:", query),
+            onSearch: (query) => { setSearch(query); setCurrentPage(1); },
           },
         }}
       />

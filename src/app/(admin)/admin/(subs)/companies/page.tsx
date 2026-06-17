@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/shared/button";
 import { DataTable, Column } from "@/components/shared/datatable";
 import { Icons } from "@/components/shared/icons";
@@ -44,23 +45,25 @@ const companiesColumns: Column<Company>[] = [
   },
 ];
 
-const companyRowActions = (company: Company) => (
-  <div className="flex items-center gap-1">
-    <Button
-      variant="ghost"
-      size="icon-xs"
-      onClick={() => console.log("View", company)}
-    >
-      <Eye className="w-3 h-3" />
-    </Button>
-  </div>
-);
-
 export default function CompaniesPage() {
+  const router = useRouter();
   const [currentPage, setCurrentPage] = React.useState(1);
+  const [search, setSearch] = React.useState("");
   const pageSize = 10;
 
-  const { data, isLoading } = useCompanies({ page: currentPage, pageSize });
+  const { data, isLoading } = useCompanies({ page: currentPage, pageSize, search: search || undefined });
+
+  const companyRowActions = (company: Company) => (
+    <div className="flex items-center gap-1">
+      <Button
+        variant="ghost"
+        size="icon-xs"
+        onClick={() => router.push(`/admin/companies/${company.id}`)}
+      >
+        <Eye className="w-3 h-3" />
+      </Button>
+    </div>
+  );
   const companies = data?.data ?? [];
   const totalPages = data?.totalPages ?? 1;
   const total = data?.total ?? 0;
@@ -142,7 +145,7 @@ export default function CompaniesPage() {
         actions={{
           search: {
             placeholder: "Search companies...",
-            onSearch: (query) => console.log("Search:", query),
+            onSearch: (query) => { setSearch(query); setCurrentPage(1); },
           },
         }}
       />

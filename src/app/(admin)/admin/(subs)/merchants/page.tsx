@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/shared/button";
 import { DataTable, Column } from "@/components/shared/datatable";
 import { Icons } from "@/components/shared/icons";
@@ -42,23 +43,25 @@ const merchantColumns: Column<Merchant>[] = [
   },
 ];
 
-const merchantRowActions = (merchant: Merchant) => (
-  <div className="flex items-center gap-1">
-    <Button
-      variant="ghost"
-      size="icon-xs"
-      onClick={() => console.log("View", merchant)}
-    >
-      <Eye className="w-3 h-3" />
-    </Button>
-  </div>
-);
-
 export default function MerchantsPage() {
+  const router = useRouter();
   const [currentPage, setCurrentPage] = React.useState(1);
+  const [search, setSearch] = React.useState("");
   const pageSize = 10;
 
-  const { data, isLoading } = useMerchants({ page: currentPage, pageSize });
+  const { data, isLoading } = useMerchants({ page: currentPage, pageSize, search: search || undefined });
+
+  const merchantRowActions = (merchant: Merchant) => (
+    <div className="flex items-center gap-1">
+      <Button
+        variant="ghost"
+        size="icon-xs"
+        onClick={() => router.push(`/admin/merchants/${merchant.id}`)}
+      >
+        <Eye className="w-3 h-3" />
+      </Button>
+    </div>
+  );
   const merchants = data?.data ?? [];
   const totalPages = data?.totalPages ?? 1;
   const total = data?.total ?? 0;
@@ -140,7 +143,7 @@ export default function MerchantsPage() {
         actions={{
           search: {
             placeholder: "Search merchants...",
-            onSearch: (query) => console.log("Search:", query),
+            onSearch: (query) => { setSearch(query); setCurrentPage(1); },
           },
         }}
       />

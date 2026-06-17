@@ -4,9 +4,12 @@ import { useState } from "react";
 import { NavLink } from "../shared/navlink";
 import { Button } from "../ui/button";
 import { Menu, X } from "lucide-react";
+import { useSession } from "next-auth/react";
 
 export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { data: session } = useSession();
+  const userName = session?.user?.name ?? "—";
 
   const navItems = [
     { href: "/dashboard", label: "Dashboard", variant: "ghost" as const },
@@ -94,14 +97,14 @@ export default function Navbar() {
 
           <div className="absolute bottom-5 left-5 right-5">
             <p className="text-sm font-medium text-muted-foreground">
-              Alex Thompson
+              {userName}
             </p>
           </div>
         </div>
       </div>
 
       <div className="hidden md:block">
-        <p>Alex Thompson</p>
+        <p>{userName}</p>
       </div>
     </header>
   );
