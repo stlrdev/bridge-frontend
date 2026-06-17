@@ -70,6 +70,17 @@ function createApiClient(): AxiosInstance {
             totalPages: paginatedEnvelope.meta!.totalPages,
           };
           response.data = paginated;
+        } else if (Array.isArray((envelope as BackendEnvelope<unknown[]>).data)) {
+          // Array response without pagination meta — wrap into PaginatedResponse shape
+          const arr = (envelope as BackendEnvelope<unknown[]>).data;
+          const paginated: PaginatedResponse<unknown> = {
+            data: arr,
+            total: arr.length,
+            page: 1,
+            pageSize: arr.length,
+            totalPages: 1,
+          };
+          response.data = paginated;
         } else {
           response.data = envelope.data;
         }
