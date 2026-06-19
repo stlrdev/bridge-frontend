@@ -10,6 +10,7 @@ export const companyKeys = {
   all: ["companies"] as const,
   lists: () => [...companyKeys.all, "list"] as const,
   list: (params?: CompanyListParams) => [...companyKeys.lists(), params] as const,
+  detail: (id: string) => [...companyKeys.all, "detail", id] as const,
   me: () => [...companyKeys.all, "me"] as const,
   employees: () => [...companyKeys.all, "employees"] as const,
   employeeRedemptions: (customerId: string) =>
@@ -18,6 +19,15 @@ export const companyKeys = {
 };
 
 // ── STLR ADMIN ────────────────────────────────────────────────────────────────
+
+export function useCompany(companyId: string) {
+  return useQuery({
+    queryKey: companyKeys.detail(companyId),
+    queryFn: () => companiesApi.getById(companyId),
+    enabled: !!companyId,
+    staleTime: 120_000,
+  });
+}
 
 export function useCompanies(params?: CompanyListParams) {
   return useQuery({

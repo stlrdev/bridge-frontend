@@ -15,6 +15,9 @@ export const companiesApi = {
   list: (params?: CompanyListParams) =>
     get<PaginatedResponse<ClientOrganization>>("/clients/", { params }),
 
+  getById: (companyId: string) =>
+    get<ClientOrganization>(`/clients/${companyId}/`),
+
   create: (payload: CreateClientOrganizationPayload) =>
     post<ClientOrganization>("/clients/", payload),
 
