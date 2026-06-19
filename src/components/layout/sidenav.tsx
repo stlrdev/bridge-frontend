@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Menu, X, ChevronDown, LogOut } from "lucide-react";
 import { Icons } from "../shared/icons";
+import { signOut } from "next-auth/react";
 
 interface NavItem {
   title: string;
@@ -68,7 +69,8 @@ export function SideNav({ className }: SideNavProps) {
 
   const isActive = (href?: string) => {
     if (!href) return false;
-    return pathname === href;
+    if (href === "/admin") return pathname === href;
+    return pathname.startsWith(href);
   };
 
   return (
@@ -177,6 +179,7 @@ export function SideNav({ className }: SideNavProps) {
               "w-full justify-start gap-3 text-destructive hover:text-destructive",
               isCollapsed && "justify-center px-2",
             )}
+            onClick={() => signOut({ callbackUrl: "/login" })}
           >
             <LogOut className="size-4" />
             {!isCollapsed && <span className="flex-1 text-left">Logout</span>}

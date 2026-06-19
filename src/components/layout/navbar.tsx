@@ -4,7 +4,7 @@ import { useState } from "react";
 import { NavLink } from "../shared/navlink";
 import { Button } from "../ui/button";
 import { Menu, X } from "lucide-react";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 
 export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -95,16 +95,28 @@ export default function Navbar() {
             </ul>
           </nav>
 
-          <div className="absolute bottom-5 left-5 right-5">
+          <div className="absolute bottom-5 left-5 right-5 flex items-center justify-between">
             <p className="text-sm font-medium text-muted-foreground">
               {userName}
             </p>
+            <button
+              onClick={() => signOut({ callbackUrl: "/login" })}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Logout
+            </button>
           </div>
         </div>
       </div>
 
-      <div className="hidden md:block">
-        <p>{userName}</p>
+      <div className="hidden md:flex items-center gap-3">
+        <p className="text-sm">{userName}</p>
+        <button
+          onClick={() => signOut({ callbackUrl: "/login" })}
+          className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          Logout
+        </button>
       </div>
     </header>
   );
