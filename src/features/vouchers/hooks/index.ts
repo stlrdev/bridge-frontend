@@ -211,6 +211,15 @@ export function useAdminVouchers(params?: VouchersListParams) {
   });
 }
 
+export function useAdminVoucherById(voucherId: string) {
+  return useQuery({
+    queryKey: vouchersKeys.detail(voucherId),
+    queryFn: () => vouchersApi.adminGetById(voucherId),
+    enabled: !!voucherId,
+    staleTime: 60_000,
+  });
+}
+
 export function useAdminDisableVoucher() {
   const qc = useQueryClient();
   return useMutation({
